@@ -1,0 +1,31 @@
+workflows:
+  ios-android-workflow:
+    name: Thermommatter AI iOS & Android Build
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd APP
+          flutter pub get
+      - name: Build Android APK
+        script: |
+          cd APP
+          flutter build apk --release --no-shrink
+      - name: Build iOS IPA
+        script: |
+          cd APP
+          # Nota: Para builds de producción se requieren certificados y perfiles de aprovisionamiento
+          # Este comando genera un build para pruebas (unassigned)
+          flutter build ipa --release --no-codesign
+    artifacts:
+      - APP/build/app/outputs/flutter-apk/*.apk
+      - APP/build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - fcastanoe@unal.edu.co # Ajustado según tu perfil
