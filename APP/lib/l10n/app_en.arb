@@ -1,0 +1,10 @@
+{
+  "appTitle": "Mamitas",
+  "patientsModule": "Patients",
+  "analysisModule": "Analysis",
+  "resultsModule": "Results",
+  "databaseModule": "Database",
+  "helpTab": "Help",
+  "homeTab": "Home",
+  "settingsTab": "Settings"
+}

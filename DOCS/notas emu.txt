@@ -1,0 +1,2 @@
+$emu = $emu = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"; Start-Process $emu -ArgumentList "-avd Medium_Phone", "-no-snapshot-load"; Start-Sleep -s 60; flutter run -d emulator-5554
+
