@@ -1,37 +1,55 @@
 workflows:
-  build-workflow:
-    name: Thermommatter AI Build (iOS & Android)
+  ios-android-workflow:
+    name: Thermommatter AI iOS & Android Build
     instance_type: mac_mini_m1
     max_build_duration: 60
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
+
     scripts:
+      # ── 1. Dependencias Flutter ──────────────────────────────────────────
+      # flutter pub get genera ios/Flutter/Generated.xcconfig con la ruta
+      # correcta de Flutter en el builder de Codemagic. Sin este paso,
+      # CocoaPods no puede localizar xcode_backend.rb y falla.
       - name: Get Flutter packages
         script: |
           cd APP
           flutter pub get
-      - name: Configure iOS Deployment Target
-        script: |
-          # Asegurar que el target sea 15.5 programáticamente antes de compilar
-          cd APP/ios
-          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0/IPHONEOS_DEPLOYMENT_TARGET = 15.5/g' Runner.xcodeproj/project.pbxproj
-      - name: Install CocoaPods
+
+      # ── 2. Pod install ───────────────────────────────────────────────────
+      # Debe ejecutarse DESPUÉS de flutter pub get (que genera los archivos
+      # Flutter/Generated.xcconfig y .flutter-plugins que CocoaPods necesita).
+      # CORRECCIÓN: este paso faltaba completamente en el yaml original,
+      # lo que causaba el error "cannot load such file -- xcode_backend.rb".
+      - name: Install iOS pods
         script: |
           cd APP/ios
           pod install
+
+      # ── 3. Build Android APK ────────────────────────────────────────────
       - name: Build Android APK
         script: |
           cd APP
           flutter build apk --release --no-shrink
-      - name: Build iOS IPA
+
+      # ── 4. Build iOS ─────────────────────────────────────────────────────
+      # CORRECCIÓN: se cambia `flutter build ipa` por `flutter build ios`.
+      # `flutter build ipa` requiere certificados de firma válidos aunque se
+      # use --no-codesign; falla en CI sin un perfil de aprovisionamiento.
+      # `flutter build ios --no-codesign` genera el .app sin firmar, que es
+      # lo correcto para un build de prueba/distribución sin cuenta Apple.
+      - name: Build iOS (unsigned)
         script: |
           cd APP
-          flutter build ipa --release --no-codesign
+          flutter build ios --release --no-codesign
+
     artifacts:
       - APP/build/app/outputs/flutter-apk/*.apk
-      - APP/build/ios/ipa/*.ipa
+      # El artefacto es el .app sin firmar (no .ipa, que requeriría firma)
+      - APP/build/ios/Release-iphoneos/Runner.app
+
     publishing:
       email:
         recipients:
