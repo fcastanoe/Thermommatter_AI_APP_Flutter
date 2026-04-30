@@ -1,0 +1,38 @@
+workflows:
+  build-workflow:
+    name: Thermommatter AI Build (iOS & Android)
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd APP
+          flutter pub get
+      - name: Configure iOS Deployment Target
+        script: |
+          # Asegurar que el target sea 15.5 programáticamente antes de compilar
+          cd APP/ios
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = 12.0/IPHONEOS_DEPLOYMENT_TARGET = 15.5/g' Runner.xcodeproj/project.pbxproj
+      - name: Install CocoaPods
+        script: |
+          cd APP/ios
+          pod install
+      - name: Build Android APK
+        script: |
+          cd APP
+          flutter build apk --release --no-shrink
+      - name: Build iOS IPA
+        script: |
+          cd APP
+          flutter build ipa --release --no-codesign
+    artifacts:
+      - APP/build/app/outputs/flutter-apk/*.apk
+      - APP/build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - fcastanoe@unal.edu.co
