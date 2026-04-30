@@ -35,20 +35,21 @@ workflows:
           flutter build apk --release --no-shrink
 
       # ── 4. Build iOS ─────────────────────────────────────────────────────
-      # CORRECCIÓN: se cambia `flutter build ipa` por `flutter build ios`.
-      # `flutter build ipa` requiere certificados de firma válidos aunque se
-      # use --no-codesign; falla en CI sin un perfil de aprovisionamiento.
-      # `flutter build ios --no-codesign` genera el .app sin firmar, que es
-      # lo correcto para un build de prueba/distribución sin cuenta Apple.
-      - name: Build iOS (unsigned)
+      - name: Build iOS (Release)
         script: |
           cd APP
           flutter build ios --release --no-codesign
-
+      
+      - name: Package as IPA
+        script: |
+          cd APP/build/ios/Release-iphoneos
+          mkdir Payload
+          cp -r Runner.app Payload/
+          zip -r ThermommatterAI.ipa Payload
+    
     artifacts:
       - APP/build/app/outputs/flutter-apk/*.apk
-      # El artefacto es el .app sin firmar (no .ipa, que requeriría firma)
-      - APP/build/ios/Release-iphoneos/Runner.app
+      - APP/build/ios/Release-iphoneos/*.ipa
 
     publishing:
       email:
