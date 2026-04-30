@@ -29,8 +29,3 @@ workflows:
       email:
         recipients:
           - fcastanoe@unal.edu.co
-      app_store_connect:
-        auth: integration # Requiere configurar la App Store Connect API Key en Codemagic
-        submit_to_testflight: true
-        beta_groups:
-          - Internal Customers
